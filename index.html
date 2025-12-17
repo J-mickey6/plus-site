@@ -1448,20 +1448,6 @@
         <div class="footer">
           <div class="foot-left">Contact</div>
           <div class="social">
-            <a href="#">⌁</a>
-            <a href="#">in</a>
-            <a href="#">X</a>
-          </div>
-        </div>
-      </footer>
-    </div>
-  </main>
-
-      <div class="divider"></div>
-      <footer>
-        <div class="footer">
-          <div class="foot-left">Contact</div>
-          <div class="social">
             <a href="#" aria-label="Instagram">⌁</a>
             <a href="#" aria-label="LinkedIn">in</a>
             <a href="#" aria-label="X">X</a>
@@ -2216,127 +2202,124 @@
   </div>
 
   <script>
-    const routes = ["landing","measure", "home","result","ranking","shop","my"];
-
+    const routes = ["landing","measure","home","result","ranking","shop","my"];
+  
     function setActiveMenu(route){
       document.querySelectorAll("[data-route]").forEach(a=>{
         a.classList.toggle("active", a.dataset.route === route);
       });
     }
-
+  
     function showPage(route){
       document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
       const target = document.getElementById(route);
       if(target) target.classList.add("active");
       setActiveMenu(route);
     }
-
+  
     function route(){
       const hash = (location.hash || "#landing").replace("#","");
       showPage(routes.includes(hash) ? hash : "landing");
     }
-
+  
     window.addEventListener("hashchange", route);
     window.addEventListener("DOMContentLoaded", route);
-
+  
     // ===== Privacy consent modal =====
     const btnSignup = document.getElementById("btnSignup");
     const privacyModal = document.getElementById("privacyModal");
-
     const btnAgree = document.getElementById("btnAgree");
     const btnDisagree = document.getElementById("btnDisagree");
     const btnCancel = document.getElementById("btnCancel");
-
+  
     function openPrivacy(){
       privacyModal.classList.add("open");
       privacyModal.setAttribute("aria-hidden", "false");
       document.body.style.overflow = "hidden";
     }
-
     function closePrivacy(){
       privacyModal.classList.remove("open");
       privacyModal.setAttribute("aria-hidden", "true");
       document.body.style.overflow = "";
     }
-
+  
     btnSignup?.addEventListener("click", openPrivacy);
-
-    // ✅ 동의: 예시로 #home으로 이동(원하면 #my나 #result 등으로 바꿔도 됨)
+  
     btnAgree?.addEventListener("click", () => {
       closePrivacy();
-      location.hash = "#measure";   // ✅ 여기만 바꿈!
+      location.hash = "#measure";
     });
-
-    // ✅ 동의 안 함: 그냥 닫고(또는 안내 문구 띄우게 바꿀 수 있음)
+  
     btnDisagree?.addEventListener("click", () => {
       closePrivacy();
       alert("Please agree to continue with the sign-up process.");
     });
-
-    // ✅ 취소: 닫기
+  
     btnCancel?.addEventListener("click", closePrivacy);
-
-    // 바깥 클릭하면 닫기 (원치 않으면 이 블록 삭제)
+  
     privacyModal?.addEventListener("click", (e) => {
       if(e.target === privacyModal) closePrivacy();
     });
-
-    // ESC로 닫기
+  
     window.addEventListener("keydown", (e) => {
       if(e.key === "Escape" && privacyModal.classList.contains("open")) closePrivacy();
     });
-
+  
     // ===== Camera Control =====
     window.addEventListener("DOMContentLoaded", () => {
       const startCameraBtn = document.getElementById("startCamera");
       const cameraBox = document.getElementById("cameraBox");
       const video = document.getElementById("camera");
-    
+      const measureWrap = document.getElementById("measureWrap");
+  
       let stream = null;
-    
-      if (!startCameraBtn) {
-        console.log("[HopFit] startCamera button not found (check script position / id)");
-        return;
-      }
-    
+  
+      if (!startCameraBtn || !cameraBox || !video || !measureWrap) return;
+  
       startCameraBtn.addEventListener("click", async () => {
         try {
-          if (stream) return;
-      
+          // 안내(버튼/설명) 숨기고 카메라만 중앙
+          measureWrap.classList.add("camera-on");
+          cameraBox.hidden = false;
+  
           stream = await navigator.mediaDevices.getUserMedia({
             video: { facingMode: "user" },
             audio: false
           });
-      
+  
           video.srcObject = stream;
-      
-          document.getElementById("measureWrap")?.classList.add("camera-on");
-          cameraBox.hidden = false;
-      
-          // ✅ 2초 후 완료 처리
+  
           setTimeout(() => {
             try {
-              if (stream) {
-                stream.getTracks().forEach(t => t.stop());
-                stream = null;
-              }
-              video.srcObject = null;
-            } catch (e) {}
-      
+              if (stream) stream.getTracks().forEach(t => t.stop());
+            } catch(e) {}
+  
+            stream = null;
+            video.srcObject = null;
+  
             alert("체력측정이 완료되었습니다.");
             location.hash = "#home";
+  
+            // 다음에 다시 measure 오면 안내가 보이게 초기화(원하면 삭제 가능)
+            measureWrap.classList.remove("camera-on");
+            cameraBox.hidden = true;
           }, 2000);
-      
+  
         } catch (err) {
           alert("카메라 접근이 차단되었습니다.\n브라우저 권한(사이트 설정)과 HTTPS를 확인해주세요.");
           console.error(err);
+  
+          // 실패 시 원상복구
+          measureWrap.classList.remove("camera-on");
+          cameraBox.hidden = true;
         }
       });
-
-
+    });
   </script>
+
 </body>
 </html>
+
 
 
 
