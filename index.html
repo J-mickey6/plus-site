@@ -1324,23 +1324,41 @@
       opacity:.85;
     }
 
-    /* ===== CAMERA ===== */
+    /* 카메라 켜지기 전: 안내 화면 */
+    .measure-intro{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:18px;
+    }
+    
+    /* 카메라 켜진 후: 안내 숨기고 카메라만 중앙 */
+    .measure-wrap.camera-on{
+      min-height:calc(100vh - 72px - 120px);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:40px 0;
+    }
+    .measure-wrap.camera-on .measure-intro{
+      display:none;
+    }
+    
+    /* 카메라 박스: 중앙 & 크게 */
     .camera-box{
-      margin-top:20px;
-      width:320px;
-      max-width:90vw;
+      width:min(520px, 92vw);
       aspect-ratio:3/4;
       border-radius:16px;
       overflow:hidden;
       background:#000;
       box-shadow:0 10px 22px rgba(0,0,0,.15);
     }
-
     .camera-box video{
       width:100%;
       height:100%;
       object-fit:cover;
     }
+
 
 
 
@@ -1409,11 +1427,14 @@
     <div class="container page-pad">
       <div class="measure-wrap">
 
-        <button class="measure-btn" id="startCamera" type="button">Fitness Assessment</button>
-
-        <div class="measure-text">
-          A fitness assessment is required to provide personalized exercise programs.<br/>
-          Tap the button to activate the camera.
+        <!-- ✅ 버튼/설명 영역 (카메라 켜지면 숨김) -->
+        <div class="measure-intro" id="measureIntro">
+          <button class="measure-btn" id="startCamera" type="button">Fitness Assessment</button>
+      
+          <div class="measure-text">
+            A fitness assessment is required to provide personalized exercise programs.<br/>
+            Tap the button to activate the camera.
+          </div>
         </div>
 
         <!-- 🎥 카메라 미리보기 -->
@@ -2280,33 +2301,29 @@
     
       startCameraBtn.addEventListener("click", async () => {
         try {
-          // 혹시 모달(backdrop)이 열려 있으면 닫기(클릭 막는 원인 1위)
-          const privacyModal = document.getElementById("privacyModal");
-          if (privacyModal?.classList.contains("open")) {
-            privacyModal.classList.remove("open");
-            document.body.style.overflow = "";
-          }
-    
-          if (stream) return; // 이미 켜져 있으면 무시
-    
+          if (stream) return;
+      
           stream = await navigator.mediaDevices.getUserMedia({
             video: { facingMode: "user" },
             audio: false
           });
-    
+      
           video.srcObject = stream;
+      
+          // ✅ 여기 2줄 추가
+          document.getElementById("measureWrap")?.classList.add("camera-on");
           cameraBox.hidden = false;
+      
         } catch (err) {
           alert("카메라 접근이 차단되었습니다.\n브라우저 권한(사이트 설정)과 HTTPS를 확인해주세요.");
           console.error(err);
         }
       });
-    });
-
 
   </script>
 </body>
 </html>
+
 
 
 
