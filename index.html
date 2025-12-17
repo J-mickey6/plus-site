@@ -1409,7 +1409,7 @@
     <div class="container page-pad">
       <div class="measure-wrap">
 
-        <div class="measure-btn">Fitness Assessment</div>
+        <button class="measure-btn" id="startCamera" type="button">Fitness Assessment</div>
 
         <div class="measure-text">
           A fitness assessment is required to provide personalized exercise programs.<br/>
@@ -2266,34 +2266,47 @@
     });
 
     // ===== Camera Control =====
-    const startCameraBtn = document.getElementById("startCamera");
-    const cameraBox = document.getElementById("cameraBox");
-    const video = document.getElementById("camera");
-
-    let stream = null;
-
-    startCameraBtn?.addEventListener("click", async () => {
-      try {
-        // 이미 켜져 있으면 무시
-        if(stream) return;
-
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "user" }, // 전면 카메라
-          audio: false
-        });
-
-        video.srcObject = stream;
-        cameraBox.hidden = false;
-
-      } catch (err) {
-        alert("카메라 접근이 차단되었습니다.\n브라우저 권한을 확인해주세요.");
-        console.error(err);
+    window.addEventListener("DOMContentLoaded", () => {
+      const startCameraBtn = document.getElementById("startCamera");
+      const cameraBox = document.getElementById("cameraBox");
+      const video = document.getElementById("camera");
+    
+      let stream = null;
+    
+      if (!startCameraBtn) {
+        console.log("[HopFit] startCamera button not found (check script position / id)");
+        return;
       }
+    
+      startCameraBtn.addEventListener("click", async () => {
+        try {
+          // 혹시 모달(backdrop)이 열려 있으면 닫기(클릭 막는 원인 1위)
+          const privacyModal = document.getElementById("privacyModal");
+          if (privacyModal?.classList.contains("open")) {
+            privacyModal.classList.remove("open");
+            document.body.style.overflow = "";
+          }
+    
+          if (stream) return; // 이미 켜져 있으면 무시
+    
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "user" },
+            audio: false
+          });
+    
+          video.srcObject = stream;
+          cameraBox.hidden = false;
+        } catch (err) {
+          alert("카메라 접근이 차단되었습니다.\n브라우저 권한(사이트 설정)과 HTTPS를 확인해주세요.");
+          console.error(err);
+        }
+      });
     });
 
 
   </script>
 </body>
 </html>
+
 
 
