@@ -1425,7 +1425,7 @@
   <!-- MEASURE (체력 측정) -->
   <main id="measure" class="page">
     <div class="container page-pad">
-      <div class="measure-wrap">
+      <div class="measure-wrap" id="measureWrap">
 
         <!-- ✅ 버튼/설명 영역 (카메라 켜지면 숨김) -->
         <div class="measure-intro" id="measureIntro">
@@ -2310,15 +2310,30 @@
       
           video.srcObject = stream;
       
-          // ✅ 여기 2줄 추가
           document.getElementById("measureWrap")?.classList.add("camera-on");
+          document.getElementById("measureIntro").style.display = "none";
           cameraBox.hidden = false;
+      
+          // ✅ 2초 후 완료 처리
+          setTimeout(() => {
+            try {
+              if (stream) {
+                stream.getTracks().forEach(t => t.stop());
+                stream = null;
+              }
+              video.srcObject = null;
+            } catch (e) {}
+      
+            alert("체력측정이 완료되었습니다.");
+            location.hash = "#home";
+          }, 2000);
       
         } catch (err) {
           alert("카메라 접근이 차단되었습니다.\n브라우저 권한(사이트 설정)과 HTTPS를 확인해주세요.");
           console.error(err);
         }
       });
+
 
   </script>
 </body>
