@@ -1349,6 +1349,24 @@
     .measure-wrap.camera-only .measure-text{
       display:none;
     }
+    
+    .modal-backdrop.open{ display:flex; }
+
+    /* ✅ Measure 완료 모달 강제 표시 (우선순위 이슈 방지) */
+    #measureDoneModal{
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.35);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999999; /* 더 크게 */
+    }
+    
+    #measureDoneModal.open{
+      display: flex !important;
+    }
+
 
 
   </style>
@@ -2196,7 +2214,24 @@
 
     function route(){
       const hash = (location.hash || "#landing").replace("#","");
-      showPage(routes.includes(hash) ? hash : "landing");
+    
+      const current = routes.includes(hash) ? hash : "landing";
+      showPage(current);
+    
+      // ✅ measure로 들어오면 자동으로 카메라 시작 (버튼 클릭 안 해도 됨)
+      if(current === "measure"){
+        // 페이지 전환 렌더 타이밍 조금 기다렸다가 실행
+        setTimeout(() => {
+          document.getElementById("startCamera")?.click();
+        }, 150);
+      } else {
+        // ✅ 다른 페이지로 나가면 카메라/타이머 정리 (중요)
+        clearTimeout(doneTimer);
+        stopCamera();
+        cameraBox.hidden = true;
+        measureWrap?.classList.remove("camera-only");
+        closeMeasureDone();
+      }
     }
 
     window.addEventListener("hashchange", route);
@@ -2332,6 +2367,7 @@
   </script>
 </body>
 </html>
+
 
 
 
