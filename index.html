@@ -1302,10 +1302,10 @@
     }
 
     .measure-btn{
-      width:240px;
-      height:110px;
-      background:var(--orange);
-      border-radius:12px;
+      width: 240px;
+      height: 110px;
+      background: var(--orange);
+      border-radius: 12px;
       display:flex;
       align-items:center;
       justify-content:center;
@@ -1313,10 +1313,7 @@
       font-size:22px;
       color:#111;
       box-shadow:0 10px 22px rgba(0,0,0,.08);
-      cursor:pointer;
-      border:0;
     }
-
 
     .measure-text{
       text-align:center;
@@ -1327,14 +1324,13 @@
       opacity:.85;
     }
 
-    /* ===== CAMERA ===== */
+    /* ===== CAMERA (full screen) ===== */
     .camera-box{
-      margin-top:20px;
-      width:320px;
-      max-width:90vw;
-      aspect-ratio:3/4;
-      border-radius:16px;
-      overflow:hidden;
+      width: min(520px, 94vw);
+      height: calc(100vh - 72px - 40px); /* 헤더 제외하고 거의 풀 */
+      max-height: 760px;
+      border-radius: 16px;
+      overflow: hidden;
       background:#000;
       box-shadow:0 10px 22px rgba(0,0,0,.15);
     }
@@ -1344,9 +1340,15 @@
       height:100%;
       object-fit:cover;
     }
+    /* 버튼 누른 뒤: 카메라만 보이게 */
+    .measure-wrap.camera-only{
+      justify-content:flex-start;
+    }
 
-
-
+    .measure-wrap.camera-only .measure-btn,
+    .measure-wrap.camera-only .measure-text{
+      display:none;
+    }
 
 
   </style>
@@ -1412,7 +1414,7 @@
     <div class="container page-pad">
       <div class="measure-wrap">
 
-        <button class="measure-btn" id="startCamera" type="button">Fitness Assessment</button>
+        <div class="measure-btn">Fitness Assessment</div>
 
         <div class="measure-text">
           A fitness assessment is required to provide personalized exercise programs.<br/>
@@ -2269,45 +2271,38 @@
     });
 
     // ===== Camera Control =====
-    window.addEventListener("DOMContentLoaded", () => {
-      const startCameraBtn = document.getElementById("startCamera");
-      const cameraBox = document.getElementById("cameraBox");
-      const video = document.getElementById("camera");
-    
-      let stream = null;
-    
-      if (!startCameraBtn) {
-        console.log("[HopFit] startCamera button not found (check script position / id)");
-        return;
+    const startCameraBtn = document.getElementById("startCamera");
+    const cameraBox = document.getElementById("cameraBox");
+    const video = document.getElementById("camera");
+    const measureWrap = document.querySelector("#measure .measure-wrap");
+
+    let stream = null;
+
+    startCameraBtn?.addEventListener("click", async () => {
+      try {
+        if(stream) return;
+
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "user" },
+          audio: false
+        });
+
+        video.srcObject = stream;
+
+        // ✅ 카메라만 보이게 전환
+        cameraBox.hidden = false;
+        measureWrap?.classList.add("camera-only");
+
+      } catch (err) {
+        alert("카메라 접근이 차단되었습니다.\n브라우저 권한을 확인해주세요.");
+        console.error(err);
       }
-    
-      startCameraBtn.addEventListener("click", async () => {
-        try {
-          // 혹시 모달(backdrop)이 열려 있으면 닫기(클릭 막는 원인 1위)
-          const privacyModal = document.getElementById("privacyModal");
-          if (privacyModal?.classList.contains("open")) {
-            privacyModal.classList.remove("open");
-            document.body.style.overflow = "";
-          }
-    
-          if (stream) return; // 이미 켜져 있으면 무시
-    
-          stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: "user" },
-            audio: false
-          });
-    
-          video.srcObject = stream;
-          cameraBox.hidden = false;
-        } catch (err) {
-          alert("카메라 접근이 차단되었습니다.\n브라우저 권한(사이트 설정)과 HTTPS를 확인해주세요.");
-          console.error(err);
-        }
-      });
     });
+
 
 
   </script>
 </body>
 </html>
+
 
