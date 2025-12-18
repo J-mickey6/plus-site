@@ -2161,24 +2161,22 @@
     </div>
   </main>
 
-  <!-- Privacy Consent Modal -->
-  <div class="modal-backdrop" id="privacyModal" aria-hidden="true">
-    <div class="ios-alert" role="dialog" aria-modal="true" aria-label="Privacy consent">
+  <!-- Measure Complete Modal -->
+  <div class="modal-backdrop" id="measureDoneModal" aria-hidden="true">
+    <div class="ios-alert" role="dialog" aria-modal="true" aria-label="Fitness assessment complete">
       <div class="ios-alert-body">
-        <div class="ios-title">Personal Information Collection and Use Agreement</div>
+        <div class="ios-title">Fitness assessment completed.</div>
         <div class="ios-msg">
-          Your name and email will be collected and used to provide our services.<br/>
-          Do you agree?
+          Your assessment is complete.<br/>
+          Tap OK to go to Home.
         </div>
       </div>
-
       <div class="ios-actions">
-        <button class="ios-btn primary" type="button" id="btnAgree">Agree</button>
-        <button class="ios-btn danger" type="button" id="btnDisagree">Disagree</button>
-        <button class="ios-btn" type="button" id="btnCancel">Cancel</button>
+        <button class="ios-btn primary" type="button" id="btnMeasureOk">OK</button>
       </div>
     </div>
   </div>
+
 
   <script>
     const routes = ["landing","measure", "home","result","ranking","shop","my"];
@@ -2256,28 +2254,77 @@
     const cameraBox = document.getElementById("cameraBox");
     const video = document.getElementById("camera");
     const measureWrap = document.querySelector("#measure .measure-wrap");
-
+    
     let stream = null;
-
+    let doneTimer = null;
+    
+    // ✅ 완료 모달 요소
+    const measureDoneModal = document.getElementById("measureDoneModal");
+    const btnMeasureOk = document.getElementById("btnMeasureOk");
+    
+    function openMeasureDone(){
+      measureDoneModal.classList.add("open");
+      measureDoneModal.setAttribute("aria-hidden", "false");
+      document.body.style.overflow = "hidden";
+    }
+    
+    function closeMeasureDone(){
+      measureDoneModal.classList.remove("open");
+      measureDoneModal.setAttribute("aria-hidden", "true");
+      document.body.style.overflow = "";
+    }
+    
+    function stopCamera(){
+      if(stream){
+        stream.getTracks().forEach(t => t.stop());
+        stream = null;
+      }
+      if(video) video.srcObject = null;
+    }
+    
     startCameraBtn?.addEventListener("click", async () => {
       try {
         if(stream) return;
-
+    
         stream = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: "user" },
           audio: false
         });
-
+    
         video.srcObject = stream;
-
+    
         // ✅ 카메라만 보이게 전환
         cameraBox.hidden = false;
         measureWrap?.classList.add("camera-only");
-
+    
+        // ✅ 2.5초 후 "완료" 모달
+        clearTimeout(doneTimer);
+        doneTimer = setTimeout(() => {
+          openMeasureDone();
+        }, 2500);
+    
       } catch (err) {
         alert("카메라 접근이 차단되었습니다.\n브라우저 권한을 확인해주세요.");
         console.error(err);
       }
+    });
+    
+    // ✅ OK 누르면: 모달 닫기 → 카메라 종료 → 홈으로 이동
+    btnMeasureOk?.addEventListener("click", () => {
+      closeMeasureDone();
+      clearTimeout(doneTimer);
+      stopCamera();
+    
+      // measure 화면 상태 원복 (다음에 다시 측정할 때 버튼/문구 보이게)
+      cameraBox.hidden = true;
+      measureWrap?.classList.remove("camera-only");
+    
+      location.hash = "#home";
+    });
+    
+    // 모달 바깥 클릭 닫기(원치 않으면 삭제)
+    measureDoneModal?.addEventListener("click", (e) => {
+      if(e.target === measureDoneModal) btnMeasureOk?.click();
     });
 
 
@@ -2285,6 +2332,7 @@
   </script>
 </body>
 </html>
+
 
 
 
