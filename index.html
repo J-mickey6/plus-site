@@ -2183,123 +2183,185 @@
     </div>
   </div>
 
-  <script>
-    const routes = ["landing","measure", "home","result","ranking","shop","my"];
+  <!-- Measure Done Modal -->
+  <div class="modal-backdrop" id="doneModal" aria-hidden="true">
+    <div class="ios-alert" role="dialog" aria-modal="true" aria-label="Measure done">
+      <div class="ios-alert-body">
+        <div class="ios-title">Fitness Assessment</div>
+        <div class="ios-msg">체력 측정이 완료되었습니다.</div>
+      </div>
+      <div class="ios-actions">
+        <button class="ios-btn primary" type="button" id="btnDoneOk">OK</button>
+      </div>
+    </div>
+  </div>
 
+
+  <script>
+    // =========================
+    // 0) DOM refs (공통)
+    // =========================
+    const routes = ["landing","measure","home","result","ranking","shop","my"];
+  
+    // Route pages
+    const pages = document.querySelectorAll(".page");
+  
+    // Header menu active
     function setActiveMenu(route){
       document.querySelectorAll("[data-route]").forEach(a=>{
         a.classList.toggle("active", a.dataset.route === route);
       });
     }
-
+  
     function showPage(route){
-      document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+      pages.forEach(p => p.classList.remove("active"));
       const target = document.getElementById(route);
       if(target) target.classList.add("active");
       setActiveMenu(route);
     }
-
+  
     function route(){
       const hash = (location.hash || "#landing").replace("#","");
       showPage(routes.includes(hash) ? hash : "landing");
     }
-
+  
     window.addEventListener("hashchange", route);
     window.addEventListener("DOMContentLoaded", route);
-
-    // ===== Privacy consent modal =====
-    const btnSignup = document.getElementById("btnSignup");
+  
+  
+    // =========================
+    // 1) Privacy consent modal
+    // =========================
+    const btnSignup   = document.getElementById("btnSignup");
     const privacyModal = document.getElementById("privacyModal");
-
-    const btnAgree = document.getElementById("btnAgree");
+    const btnAgree    = document.getElementById("btnAgree");
     const btnDisagree = document.getElementById("btnDisagree");
-    const btnCancel = document.getElementById("btnCancel");
-
+    const btnCancel   = document.getElementById("btnCancel");
+  
     function openPrivacy(){
-      privacyModal.classList.add("open");
-      privacyModal.setAttribute("aria-hidden", "false");
+      privacyModal?.classList.add("open");
+      privacyModal?.setAttribute("aria-hidden","false");
       document.body.style.overflow = "hidden";
     }
-
+  
     function closePrivacy(){
-      privacyModal.classList.remove("open");
-      privacyModal.setAttribute("aria-hidden", "true");
+      privacyModal?.classList.remove("open");
+      privacyModal?.setAttribute("aria-hidden","true");
       document.body.style.overflow = "";
     }
-
+  
     btnSignup?.addEventListener("click", openPrivacy);
-
-    // ✅ 동의: 예시로 #home으로 이동(원하면 #my나 #result 등으로 바꿔도 됨)
+  
     btnAgree?.addEventListener("click", () => {
       closePrivacy();
-      location.hash = "#measure";   // ✅ 여기만 바꿈!
+      location.hash = "#measure";
     });
-
-    // ✅ 동의 안 함: 그냥 닫고(또는 안내 문구 띄우게 바꿀 수 있음)
+  
     btnDisagree?.addEventListener("click", () => {
       closePrivacy();
       alert("Please agree to continue with the sign-up process.");
     });
-
-    // ✅ 취소: 닫기
+  
     btnCancel?.addEventListener("click", closePrivacy);
-
-    // 바깥 클릭하면 닫기 (원치 않으면 이 블록 삭제)
+  
     privacyModal?.addEventListener("click", (e) => {
       if(e.target === privacyModal) closePrivacy();
     });
-
-    // ESC로 닫기
+  
     window.addEventListener("keydown", (e) => {
-      if(e.key === "Escape" && privacyModal.classList.contains("open")) closePrivacy();
+      if(e.key === "Escape" && privacyModal?.classList.contains("open")) closePrivacy();
     });
-
-    // ===== Camera Control =====
+  
+  
+    // =========================
+    // 2) Camera control (Measure)
+    // =========================
     const startCameraBtn = document.getElementById("startCamera");
     const cameraBox = document.getElementById("cameraBox");
     const video = document.getElementById("camera");
     const measureWrap = document.querySelector("#measure .measure-wrap");
-
-    let stream = null;
-
     const measureMsg = document.getElementById("measureMsg");
+  
+    let stream = null;
     let doneTimer = null;
-    
+  
+    async function startCamera(){
+      if(stream) return;
+  
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user" },
+        audio: false
+      });
+  
+      if(video) video.srcObject = stream;
+      if(cameraBox) cameraBox.hidden = false;
+      measureWrap?.classList.add("camera-only");
+    }
+  
+    function stopCamera(){
+      if(stream){
+        stream.getTracks().forEach(t => t.stop());
+        stream = null;
+      }
+      if(video) video.srcObject = null;
+    }
+  
+  
+    // =========================
+    // 3) Measure done modal
+    // =========================
+    const doneModal = document.getElementById("doneModal");
+    const btnDoneOk = document.getElementById("btnDoneOk");
+  
+    function openDoneModal(){
+      doneModal?.classList.add("open");
+      doneModal?.setAttribute("aria-hidden","false");
+      document.body.style.overflow = "hidden";
+    }
+  
+    function closeDoneModal(){
+      doneModal?.classList.remove("open");
+      doneModal?.setAttribute("aria-hidden","true");
+      document.body.style.overflow = "";
+    }
+  
+    btnDoneOk?.addEventListener("click", () => {
+      closeDoneModal();
+      stopCamera();              // 원하면 제거 가능
+      location.hash = "#home";   // OK 누르면 홈으로
+    });
+  
+    doneModal?.addEventListener("click", (e) => {
+      if(e.target === doneModal) closeDoneModal();
+    });
+  
+  
+    // =========================
+    // 4) Start button handler
+    // =========================
     startCameraBtn?.addEventListener("click", async () => {
       try {
-        if(stream) return;
-    
-        stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "user" },
-          audio: false
-        });
-    
-        video.srcObject = stream;
-    
-        cameraBox.hidden = false;
-        measureWrap?.classList.add("camera-only");
-    
-        // ✅ 2초 후 완료 메시지
+        await startCamera();
+  
+        // (선택) 측정 안내 문구를 숨기거나 유지하고 싶으면 여기서 조절 가능
+        // measureMsg && (measureMsg.style.display = "none");
+  
         clearTimeout(doneTimer);
         doneTimer = setTimeout(() => {
-          if (measureMsg) {
-            measureMsg.innerHTML = "체력 측정이 완료되었습니다.";
-            measureMsg.style.display = "block"; // camera-only에서 숨겼던 경우 대비
-          } else {
-            alert("체력 측정이 완료되었습니다.");
-          }
+          openDoneModal();   // 2초 후 완료 모달
         }, 2000);
-    
+  
       } catch (err) {
         alert("카메라 접근이 차단되었습니다.\n브라우저 권한을 확인해주세요.");
         console.error(err);
       }
     });
-
-
+  
   </script>
+
 </body>
 </html>
+
 
 
 
