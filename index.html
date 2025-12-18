@@ -1345,11 +1345,14 @@
       justify-content:flex-start;
     }
 
-    .measure-wrap.camera-only .measure-btn,
-    .measure-wrap.camera-only .measure-text{
+    .measure-wrap.camera-only .measure-btn{
       display:none;
     }
-
+    /* ✅ 메시지는 숨기지 않음 */
+    .measure-wrap.camera-only .measure-text{
+      display:block;
+      margin-top:14px;
+    }
 
   </style>
 </head>
@@ -2297,6 +2300,7 @@
   </script>
 </body>
 </html>
+
 
 
 
